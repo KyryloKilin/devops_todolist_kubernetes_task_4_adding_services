@@ -14,9 +14,29 @@ kubectl apply -f .infrastructure/todoapp-nodeport.yml
 kubectl get pods -n todoapp
 kubectl get svc  -n todoapp
 
-# Example of lunch with port-forward
-kubectl port-forward service/kube2py-service 8081:80
+# Use the busybox pod to call the ClusterIP service.
+# open a shell inside the busybox pod
+kubectl exec -it busybox -n todoapp -- sh
 
-# Example of creation of the NodePort service
-kubectl apply -f nodeport.yml
-kubectl get svc 
+# INSIDE the busybox container, test the ClusterIP service with curl
+curl http://todoapp-clusterip:8080/api/health
+curl http://todoapp-clusterip:8080/api/ready
+
+# or using wget
+wget -qO- http://todoapp-clusterip:8080/api/health
+wget -qO- http://todoapp-clusterip:8080/api/ready
+
+# exit from the container
+exit
+
+# Port-Forward Command (ClusterIP service)
+# forward local port 8081 to the ClusterIP service port 8080 in the todoapp namespace
+kubectl port-forward -n todoapp service/todoapp-clusterip 8081:8080
+
+# NodePort Access
+# get node external / public IP address
+kubectl get nodes -o wide
+
+# check NodePort service details
+kubectl get svc todoapp-nodeport -n todoapp
+kubectl describe svc todoapp-nodeport -n todoapp
